@@ -1,0 +1,66 @@
+import os
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_squared_error
+
+# Define the directory path and file name
+directory_path = '/kaggle/input/crop-yield-prediction-dataset'
+file_name = 'yield.csv'
+file_path = os.path.join(directory_path, file_name)
+
+# Load the new data
+new_data = pd.read_csv(file_path)
+
+# Print the first few rows to understand the structure
+print(new_data.head())
+
+# Select the feature columns (adjust column names as needed)
+# Using 'Year' and 'Item' as features for simplicity
+X_new = new_data[['Year', 'Item']]
+
+# Convert categorical 'Item' column to numeric using one-hot encoding
+X_new = pd.get_dummies(X_new, columns=['Item'])
+
+# Clean the new data by replacing non-numeric values with NaN and then filling them with the mean of the column
+X_new = X_new.apply(pd.to_numeric, errors='coerce')
+X_new.fillna(X_new.mean(), inplace=True)
+
+# Standardize the features
+scaler = StandardScaler()
+X_new_scaled = scaler.fit_transform(X_new)
+# Initialize and train the model (using the same steps as before)
+model = RandomForestRegressor()
+model.fit(X_new_scaled, new_data['Value'])  # Assuming 'Value' is the target column
+
+# Make predictions
+predictions = model.predict(X_new_scaled)
+
+# Print the predictions
+print(predictions)
+
+# Evaluate the model (optional, if you have a test set)
+mse = mean_squared_error(new_data['Value'], predictions)
+print(f'Mean Squared Error: {mse}')
+
+
+
+
+
+
+Domain Code Domain  Area Code         Area  Element Code Element  Item Code  \
+0          QC  Crops          2  Afghanistan          5419   Yield         56   
+1          QC  Crops          2  Afghanistan          5419   Yield         56   
+2          QC  Crops          2  Afghanistan          5419   Yield         56   
+3          QC  Crops          2  Afghanistan          5419   Yield         56   
+4          QC  Crops          2  Afghanistan          5419   Yield         56   
+
+    Item  Year Code  Year   Unit  Value  
+0  Maize       1961  1961  hg/ha  14000  
+1  Maize       1962  1962  hg/ha  14000  
+2  Maize       1963  1963  hg/ha  14260  
+3  Maize       1964  1964  hg/ha  14257  
+4  Maize       1965  1965  hg/ha  14400  
+[14619.18291952 15035.67381969 15257.70782441 ... 32960.20022852
+ 34060.07496573 33553.80456013]
+Mean Squared Error: 2328859297.9933157
