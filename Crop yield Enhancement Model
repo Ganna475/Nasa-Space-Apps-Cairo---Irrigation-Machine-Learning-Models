@@ -1,0 +1,74 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_squared_error
+
+# Load the dataset
+data = pd.read_csv('/kaggle/input/crop-yield-prediction-dataset/yield.csv')
+
+# Inspect the data
+print(data.head())
+
+# Select relevant features
+# Using 'Year' and 'Item' as features for simplicity
+features = ['Year', 'Item']
+X = data[features]
+y = data['Value']  # Assuming 'Value' is the target column representing yield
+
+# Convert categorical 'Item' column to numeric using one-hot encoding
+X = pd.get_dummies(X, columns=['Item'])
+
+# Clean the data by replacing non-numeric values with NaN and then filling them with the mean of the column
+X = X.apply(pd.to_numeric, errors='coerce')
+X.fillna(X.mean(), inplace=True)
+
+# Ensure the target column is numeric and handle NaN values
+y = pd.to_numeric(y, errors='coerce')
+y.fillna(y.mean(), inplace=True)
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Standardize the features
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# Initialize and train the model
+model = RandomForestRegressor()
+model.fit(X_train_scaled, y_train)
+
+# Make predictions
+y_pred = model.predict(X_test_scaled)
+
+# Evaluate the model
+mse = mean_squared_error(y_test, y_pred)
+print(f'Mean Squared Error: {mse}')
+
+# Save the model for future use
+import joblib
+joblib.dump(model, 'improved_crop_yield_model.pkl')
+
+
+
+
+
+
+
+
+
+Domain Code Domain  Area Code         Area  Element Code Element  Item Code  \
+0          QC  Crops          2  Afghanistan          5419   Yield         56   
+1          QC  Crops          2  Afghanistan          5419   Yield         56   
+2          QC  Crops          2  Afghanistan          5419   Yield         56   
+3          QC  Crops          2  Afghanistan          5419   Yield         56   
+4          QC  Crops          2  Afghanistan          5419   Yield         56   
+
+    Item  Year Code  Year   Unit  Value  
+0  Maize       1961  1961  hg/ha  14000  
+1  Maize       1962  1962  hg/ha  14000  
+2  Maize       1963  1963  hg/ha  14260  
+3  Maize       1964  1964  hg/ha  14257  
+4  Maize       1965  1965  hg/ha  14400  
+Mean Squared Error: 2409671809.0282454
+['improved_crop_yield_model.pkl']
