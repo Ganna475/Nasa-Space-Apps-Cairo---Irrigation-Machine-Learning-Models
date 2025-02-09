@@ -1,0 +1,99 @@
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, classification_report
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+
+crop_data = pd.read_csv('/kaggle/input/crop-recommendation-dataset/Crop_recommendation.csv')
+
+
+print(crop_data.columns)
+
+
+crop_type_column = 'label'  # Replace with the actual column name
+
+# Encode the target variable (crop type)
+le = LabelEncoder()
+crop_data[crop_type_column] = le.fit_transform(crop_data[crop_type_column])
+
+# Normalize numerical features
+scaler = StandardScaler()
+numerical_features = ['N', 'P', 'K', 'temperature', 'humidity', 'ph', 'rainfall']
+crop_data[numerical_features] = scaler.fit_transform(crop_data[numerical_features])
+
+# Define features and target variable
+X = crop_data[numerical_features]
+y = crop_data[crop_type_column]
+# Split the data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Initialize the model
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+
+# Train the model
+model.fit(X_train, y_train)
+
+# Make predictions
+y_pred = model.predict(X_test)
+
+# Calculate accuracy
+accuracy = accuracy_score(y_test, y_pred)
+print(f'Accuracy: {accuracy}')
+
+# Display classification report
+print(classification_report(y_test, y_pred, target_names=le.classes_))
+
+# Example input data with feature names
+input_data = pd.DataFrame([[90, 42, 43, 20.87, 82.00, 6.5, 202.93]], columns=numerical_features)
+
+# Normalize the input data
+input_data = scaler.transform(input_data)
+
+# Predict the crop
+predicted_crop = model.predict(input_data)
+predicted_crop_name = le.inverse_transform(predicted_crop)
+print(f'Recommended Crop: {predicted_crop_name}')
+
+
+
+
+
+
+
+
+Index(['N', 'P', 'K', 'temperature', 'humidity', 'ph', 'rainfall', 'label'], dtype='object')
+Accuracy: 0.9931818181818182
+              precision    recall  f1-score   support
+
+       apple       1.00      1.00      1.00        23
+      banana       1.00      1.00      1.00        21
+   blackgram       1.00      1.00      1.00        20
+    chickpea       1.00      1.00      1.00        26
+     coconut       1.00      1.00      1.00        27
+      coffee       1.00      1.00      1.00        17
+      cotton       1.00      1.00      1.00        17
+      grapes       1.00      1.00      1.00        14
+        jute       0.92      1.00      0.96        23
+ kidneybeans       1.00      1.00      1.00        20
+      lentil       0.92      1.00      0.96        11
+       maize       1.00      1.00      1.00        21
+       mango       1.00      1.00      1.00        19
+   mothbeans       1.00      0.96      0.98        24
+    mungbean       1.00      1.00      1.00        19
+   muskmelon       1.00      1.00      1.00        17
+      orange       1.00      1.00      1.00        14
+      papaya       1.00      1.00      1.00        23
+  pigeonpeas       1.00      1.00      1.00        23
+ pomegranate       1.00      1.00      1.00        23
+        rice       1.00      0.89      0.94        19
+  watermelon       1.00      1.00      1.00        19
+
+    accuracy                           0.99       440
+   macro avg       0.99      0.99      0.99       440
+weighted avg       0.99      0.99      0.99       440
+
+Recommended Crop: ['rice']
